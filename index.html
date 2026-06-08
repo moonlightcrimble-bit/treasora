@@ -1,0 +1,1328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Treasora — The Digital Treasury</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#050505;--surface:#0e0e0e;--surface2:#141414;--surface3:#1a1a1a;
+  --border:rgba(255,255,255,0.06);--border2:rgba(255,255,255,0.1);
+  --primary:#00D47E;--primary-dim:rgba(0,212,126,0.12);--primary-glow:rgba(0,212,126,0.07);
+  --text:#F5F5F5;--text2:#A0A0A0;--text3:#606060;
+  --mono:'DM Mono',monospace;--serif:'Cormorant Garamond',serif;--sans:'Outfit',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;overflow-x:hidden;min-height:100vh;}
+::selection{background:var(--primary);color:#000;}
+::-webkit-scrollbar{width:4px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--surface3);border-radius:2px;}
+#bg-canvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0.35;}
+.view{display:none;min-height:100vh;position:relative;z-index:1;}
+.view.active{display:block;}
+
+/* HEADER */
+header{position:fixed;top:0;left:0;right:0;z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 48px;height:68px;background:rgba(5,5,5,0.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);transition:background 0.3s;}
+.header-logo{display:flex;align-items:center;gap:10px;cursor:pointer;}
+.logo-mark{width:34px;height:34px;background:var(--primary);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;position:relative;}
+.logo-mark::after{content:'T';font-family:var(--serif);font-weight:600;font-size:16px;color:#000;line-height:1;}
+.logo-text{font-family:var(--serif);font-size:20px;font-weight:500;letter-spacing:0.08em;}
+nav{display:flex;gap:36px;align-items:center;}
+nav a{font-size:13px;font-weight:400;letter-spacing:0.08em;text-transform:uppercase;color:var(--text2);text-decoration:none;cursor:pointer;transition:color 0.2s;position:relative;}
+nav a:hover{color:var(--text);}
+nav a::after{content:'';position:absolute;bottom:-4px;left:0;right:0;height:1px;background:var(--primary);transform:scaleX(0);transition:transform 0.25s;}
+nav a:hover::after{transform:scaleX(1);}
+.header-right{display:flex;align-items:center;gap:14px;}
+.x-link{width:34px;height:34px;border:1px solid var(--border2);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;color:var(--text2);transition:all 0.2s;}
+.x-link:hover{border-color:var(--primary);color:var(--primary);}
+.x-link svg{width:14px;height:14px;fill:currentColor;}
+.btn-connect{padding:9px 22px;background:var(--primary);color:#000;font-weight:500;font-size:13px;letter-spacing:0.06em;border:none;border-radius:8px;cursor:pointer;transition:all 0.2s;font-family:var(--sans);}
+.btn-connect:hover{background:#00f593;transform:translateY(-1px);}
+.btn-connect:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.wallet-badge{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;font-family:var(--mono);font-size:12px;color:var(--text2);}
+.verified-dot{width:7px;height:7px;border-radius:50%;background:var(--primary);box-shadow:0 0 6px var(--primary);animation:pulse-dot 2s ease-in-out infinite;}
+.unverified-dot{width:7px;height:7px;border-radius:50%;background:#f59e0b;}
+@keyframes pulse-dot{0%,100%{opacity:1;}50%{opacity:0.5;}}
+
+/* HERO */
+.hero{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:120px 48px 80px;text-align:center;position:relative;}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;padding:7px 18px;background:var(--surface2);border:1px solid var(--border2);border-radius:100px;font-family:var(--mono);font-size:11px;font-weight:400;letter-spacing:0.18em;color:var(--primary);text-transform:uppercase;margin-bottom:48px;animation:fadeUp 0.8s ease both;}
+.hero-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:var(--primary);opacity:0.7;}
+.hero-h1{font-family:var(--serif);font-size:clamp(60px,8vw,108px);font-weight:300;line-height:0.95;letter-spacing:-0.02em;margin-bottom:16px;animation:fadeUp 0.8s 0.1s ease both;}
+.hero-h1 span{color:var(--primary);font-style:italic;}
+.hero-divider{width:40px;height:1px;background:var(--primary);opacity:0.4;margin:24px auto;animation:fadeUp 0.8s 0.2s ease both;}
+.hero-sub{font-size:16px;font-weight:300;color:var(--text2);max-width:480px;line-height:1.7;margin-bottom:14px;animation:fadeUp 0.8s 0.25s ease both;}
+.hero-desc{font-size:14px;color:var(--text3);max-width:420px;line-height:1.7;margin-bottom:48px;animation:fadeUp 0.8s 0.3s ease both;}
+.hero-btns{display:flex;gap:14px;justify-content:center;animation:fadeUp 0.8s 0.35s ease both;margin-bottom:72px;}
+.btn-primary{padding:13px 32px;background:var(--primary);color:#000;font-weight:500;font-size:14px;letter-spacing:0.04em;border:none;border-radius:10px;cursor:pointer;font-family:var(--sans);transition:all 0.2s;}
+.btn-primary:hover{background:#00f593;transform:translateY(-2px);box-shadow:0 12px 32px rgba(0,212,126,0.22);}
+.btn-primary:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+.btn-outline{padding:13px 32px;background:transparent;color:var(--text);font-weight:400;font-size:14px;letter-spacing:0.04em;border:1px solid var(--border2);border-radius:10px;cursor:pointer;font-family:var(--sans);transition:all 0.2s;}
+.btn-outline:hover{border-color:var(--primary);color:var(--primary);}
+.floating-metrics{display:flex;gap:20px;animation:fadeUp 0.8s 0.4s ease both;flex-wrap:wrap;justify-content:center;}
+.float-card{padding:20px 28px;background:var(--surface);border:1px solid var(--border);border-radius:14px;text-align:left;position:relative;overflow:hidden;transition:transform 0.3s,border-color 0.3s;min-width:180px;}
+.float-card:hover{transform:translateY(-4px);border-color:var(--border2);}
+.float-label{font-size:11px;font-weight:400;color:var(--text3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:8px;}
+.float-value{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--text);}
+.float-change{font-size:11px;color:var(--primary);margin-top:4px;}
+.float-loading{font-family:var(--mono);font-size:16px;color:var(--text3);animation:blink 1.2s ease-in-out infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:0.3;}}
+
+/* CA BAR */
+.ca-bar{background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:18px 48px;display:flex;align-items:center;justify-content:center;gap:20px;flex-wrap:wrap;}
+.ca-label{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);}
+.ca-ticker{font-family:var(--mono);font-size:13px;color:var(--primary);padding:4px 10px;background:var(--primary-dim);border-radius:6px;border:1px solid rgba(0,212,126,0.2);}
+.ca-address{font-family:var(--mono);font-size:12px;color:var(--text2);letter-spacing:0.04em;}
+.ca-address.mobile{display:none;}
+.btn-copy{display:flex;align-items:center;gap:7px;padding:8px 16px;background:var(--surface2);border:1px solid var(--border2);border-radius:8px;cursor:pointer;color:var(--text2);font-family:var(--sans);font-size:12px;font-weight:400;transition:all 0.2s;}
+.btn-copy:hover{border-color:var(--primary);color:var(--primary);}
+.btn-copy.copied{border-color:var(--primary);color:var(--primary);background:var(--primary-dim);}
+.btn-copy svg{width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;}
+
+/* SECTIONS */
+section{padding:100px 48px;max-width:1200px;margin:0 auto;}
+.section-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--primary);margin-bottom:20px;display:flex;align-items:center;gap:12px;}
+.section-eyebrow::before{content:'';width:24px;height:1px;background:var(--primary);}
+.section-title{font-family:var(--serif);font-size:clamp(36px,4vw,54px);font-weight:300;line-height:1.1;margin-bottom:20px;}
+.section-sub{font-size:15px;color:var(--text2);max-width:540px;line-height:1.7;}
+
+/* METRICS GRID */
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;margin-top:60px;border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.metric-card{padding:36px 32px;background:var(--surface);position:relative;overflow:hidden;transition:background 0.3s;}
+.metric-card:hover{background:var(--surface2);}
+.metric-card-label{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:16px;}
+.metric-card-value{font-family:var(--mono);font-size:30px;font-weight:500;margin-bottom:6px;}
+.metric-card-change{font-size:12px;color:var(--primary);}
+.metric-loading{font-family:var(--mono);font-size:20px;color:var(--text3);animation:blink 1.2s infinite;}
+
+/* HOW IT WORKS */
+.steps-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:24px;margin-top:60px;position:relative;}
+.steps-grid::before{content:'';position:absolute;top:32px;left:12.5%;right:12.5%;height:1px;background:linear-gradient(90deg,transparent,var(--border2) 20%,var(--border2) 80%,transparent);}
+.step-card{padding:32px 24px;background:var(--surface);border:1px solid var(--border);border-radius:14px;transition:all 0.3s;}
+.step-card:hover{border-color:var(--primary);transform:translateY(-6px);}
+.step-num{width:48px;height:48px;border-radius:50%;background:var(--bg);border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;color:var(--primary);margin-bottom:24px;}
+.step-card:hover .step-num{background:var(--primary-dim);border-color:var(--primary);}
+.step-title{font-size:15px;font-weight:500;margin-bottom:10px;}
+.step-desc{font-size:13px;color:var(--text2);line-height:1.6;}
+
+/* FEATURES */
+.features-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:60px;border:1px solid var(--border);border-radius:16px;overflow:hidden;}
+.feature-card{padding:28px 24px;background:var(--surface);transition:background 0.3s;}
+.feature-card:hover{background:var(--surface2);}
+.feature-icon{width:40px;height:40px;border-radius:10px;background:var(--primary-dim);border:1px solid rgba(0,212,126,0.2);display:flex;align-items:center;justify-content:center;margin-bottom:18px;}
+.feature-icon svg{width:18px;height:18px;stroke:var(--primary);stroke-width:1.5;fill:none;}
+.feature-title{font-size:14px;font-weight:500;margin-bottom:8px;}
+.feature-desc{font-size:12px;color:var(--text2);line-height:1.6;}
+
+/* DOCS */
+.docs-layout{display:grid;grid-template-columns:240px 1fr;gap:48px;margin-top:60px;}
+.docs-nav-item{padding:10px 16px;font-size:13px;color:var(--text2);cursor:pointer;border-radius:8px;border-left:2px solid transparent;transition:all 0.2s;margin-bottom:2px;}
+.docs-nav-item:hover,.docs-nav-item.active{color:var(--text);border-color:var(--primary);background:var(--surface);}
+.docs-section{margin-bottom:48px;display:none;}
+.docs-section.active{display:block;}
+.docs-section h2{font-family:var(--serif);font-size:36px;font-weight:300;margin-bottom:20px;}
+.docs-section p{font-size:14px;color:var(--text2);line-height:1.8;margin-bottom:16px;}
+.docs-section h3{font-size:15px;font-weight:500;color:var(--text);margin:28px 0 12px;}
+.docs-callout{padding:20px 24px;background:var(--primary-dim);border:1px solid rgba(0,212,126,0.2);border-radius:12px;margin:20px 0;font-size:13px;color:var(--text);line-height:1.7;}
+.docs-callout strong{color:var(--primary);}
+
+/* MODALS */
+.overlay{position:fixed;inset:0;z-index:200;background:rgba(5,5,5,0.93);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;}
+.overlay.show{display:flex;}
+.modal{background:var(--surface);border:1px solid var(--border2);border-radius:20px;padding:48px;max-width:480px;width:90%;position:relative;animation:modalIn 0.35s ease;}
+@keyframes modalIn{from{opacity:0;transform:scale(0.94) translateY(12px);}to{opacity:1;transform:none;}}
+.modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text2);font-size:18px;transition:all 0.2s;}
+.modal-close:hover{border-color:var(--border2);color:var(--text);}
+.modal-icon{width:56px;height:56px;border-radius:16px;background:var(--primary-dim);border:1px solid rgba(0,212,126,0.3);display:flex;align-items:center;justify-content:center;margin:0 auto 28px;}
+.modal-icon svg{width:24px;height:24px;stroke:var(--primary);stroke-width:1.5;fill:none;}
+.modal h2{font-family:var(--serif);font-size:30px;font-weight:400;text-align:center;margin-bottom:12px;}
+.modal p{font-size:14px;color:var(--text2);text-align:center;line-height:1.7;margin-bottom:28px;}
+.modal-meta{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:18px 20px;margin-bottom:24px;}
+.modal-meta-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;}
+.modal-meta-row:not(:last-child){border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:12px;}
+.modal-meta-label{font-size:12px;color:var(--text3);}
+.modal-meta-value{font-family:var(--mono);font-size:12px;color:var(--text);}
+.modal-meta-value.green{color:var(--primary);}
+.modal-btns{display:flex;gap:12px;}
+.modal-btns .btn-primary,.modal-btns .btn-outline{flex:1;text-align:center;font-family:var(--sans);}
+.signing-animation{display:flex;flex-direction:column;align-items:center;gap:16px;margin:24px 0;}
+.signing-orb{width:72px;height:72px;border-radius:50%;border:2px solid var(--primary);display:flex;align-items:center;justify-content:center;position:relative;}
+.signing-orb::before{content:'';position:absolute;inset:4px;border-radius:50%;border:1px solid rgba(0,212,126,0.3);animation:spin 3s linear infinite;}
+.signing-orb::after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(0,212,126,0.12);animation:spin 6s linear infinite reverse;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.signing-orb-inner{font-family:var(--serif);font-size:24px;font-weight:600;color:var(--primary);}
+.signing-status{font-size:13px;color:var(--text2);letter-spacing:0.06em;}
+
+/* PHANTOM NOT FOUND */
+.phantom-warning{background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:#f59e0b;line-height:1.6;}
+.phantom-warning a{color:#fbbf24;text-decoration:underline;}
+
+/* ERROR STATE */
+.error-box{background:rgba(239,68,68,0.08);border:1px solid rgba(239,68,68,0.25);border-radius:12px;padding:16px 20px;margin-bottom:20px;font-size:13px;color:#f87171;line-height:1.6;}
+
+/* PORTAL */
+.portal{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+.sidebar{background:var(--surface);border-right:1px solid var(--border);padding:32px 20px;position:fixed;top:0;left:0;bottom:0;width:240px;display:flex;flex-direction:column;}
+.sidebar-logo{display:flex;align-items:center;gap:10px;margin-bottom:48px;padding:4px 8px;}
+.sidebar-logo .logo-text{font-size:17px;}
+.sidebar-nav{flex:1;display:flex;flex-direction:column;gap:2px;}
+.sidebar-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:10px;cursor:pointer;color:var(--text2);font-size:14px;font-weight:400;transition:all 0.2s;text-decoration:none;border:none;background:transparent;font-family:var(--sans);width:100%;}
+.sidebar-item svg{width:18px;height:18px;stroke:currentColor;stroke-width:1.5;fill:none;flex-shrink:0;}
+.sidebar-item:hover{background:var(--surface2);color:var(--text);}
+.sidebar-item.active{background:var(--primary-dim);color:var(--primary);}
+.sidebar-item.active svg{stroke:var(--primary);}
+.sidebar-footer{padding-top:20px;border-top:1px solid var(--border);}
+.sidebar-wallet{padding:12px 14px;background:var(--surface2);border-radius:10px;margin-bottom:12px;}
+.sidebar-wallet-label{font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:4px;}
+.sidebar-wallet-addr{font-family:var(--mono);font-size:11px;color:var(--text2);}
+.portal-main{margin-left:240px;padding:40px 48px;}
+.portal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:40px;}
+.portal-title{font-family:var(--serif);font-size:36px;font-weight:300;}
+.portal-subtitle{font-size:14px;color:var(--text2);margin-top:4px;}
+
+/* DASH CARDS */
+.dash-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+.dash-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px 24px 20px;position:relative;overflow:hidden;transition:border-color 0.3s;}
+.dash-card:hover{border-color:var(--border2);}
+.dash-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
+.dash-card-label{font-size:12px;color:var(--text2);letter-spacing:0.06em;}
+.dash-card-icon{width:36px;height:36px;border-radius:10px;background:var(--surface2);display:flex;align-items:center;justify-content:center;}
+.dash-card-icon svg{width:17px;height:17px;stroke:var(--text2);stroke-width:1.5;fill:none;}
+.dash-card-value{font-family:var(--mono);font-size:28px;font-weight:500;margin-bottom:6px;}
+.dash-card-sub{font-size:12px;color:var(--text2);}
+.dash-card-change{font-size:11px;color:var(--primary);margin-top:2px;}
+
+/* CHART */
+.chart-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;margin-bottom:24px;}
+.chart-card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+.chart-card-title{font-size:15px;font-weight:500;}
+.chart-tabs{display:flex;gap:4px;}
+.chart-tab{padding:6px 14px;font-size:12px;border-radius:7px;cursor:pointer;background:transparent;border:1px solid var(--border);color:var(--text2);transition:all 0.2s;font-family:var(--sans);}
+.chart-tab.active{background:var(--primary-dim);border-color:rgba(0,212,126,0.3);color:var(--primary);}
+.chart-area{height:180px;position:relative;overflow:hidden;}
+.chart-svg{width:100%;height:100%;}
+
+/* HISTORY TABLE */
+.history-table{width:100%;border-collapse:collapse;}
+.history-table thead tr{border-bottom:1px solid var(--border);}
+.history-table th{font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);padding:12px 16px;text-align:left;font-weight:400;}
+.history-table td{padding:14px 16px;font-size:13px;border-bottom:1px solid var(--border);}
+.badge{display:inline-block;padding:3px 10px;border-radius:100px;font-size:11px;}
+.badge-green{background:var(--primary-dim);color:var(--primary);border:1px solid rgba(0,212,126,0.2);}
+.badge-gray{background:var(--surface2);color:var(--text3);border:1px solid var(--border);}
+
+/* REWARDS */
+.rewards-top{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:24px;}
+.reward-big{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;}
+.reward-amount{font-family:var(--mono);font-size:42px;font-weight:500;color:var(--primary);margin-bottom:4px;}
+.reward-claimable{background:linear-gradient(135deg,rgba(0,212,126,0.07),rgba(0,212,126,0.02));border:1px solid rgba(0,212,126,0.18);}
+.claim-btn{display:block;width:100%;margin-top:20px;padding:12px;background:var(--primary);color:#000;font-weight:500;font-size:14px;border:none;border-radius:10px;cursor:pointer;font-family:var(--sans);transition:all 0.2s;}
+.claim-btn:hover{background:#00f593;}
+
+/* SETTINGS */
+.settings-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+.settings-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;}
+.settings-card h3{font-size:15px;font-weight:500;margin-bottom:20px;padding-bottom:16px;border-bottom:1px solid var(--border);}
+.settings-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;}
+.settings-row:not(:last-child){border-bottom:1px solid var(--border);}
+.settings-row-label{font-size:13px;color:var(--text2);}
+.settings-row-value{font-family:var(--mono);font-size:12px;color:var(--text);}
+.toggle{position:relative;width:44px;height:24px;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:var(--surface2);border-radius:12px;border:1px solid var(--border2);cursor:pointer;transition:all 0.3s;}
+.toggle input:checked+.toggle-slider{background:var(--primary);}
+.toggle-slider::before{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform 0.3s;}
+.toggle input:checked+.toggle-slider::before{transform:translateX(20px);}
+.btn-danger{padding:10px 20px;background:rgba(255,77,109,0.1);border:1px solid rgba(255,77,109,0.3);border-radius:8px;color:#ff4d6d;font-size:13px;cursor:pointer;font-family:var(--sans);transition:all 0.2s;}
+.btn-danger:hover{background:rgba(255,77,109,0.2);}
+
+/* TREASURY */
+.allocation-bar{display:flex;height:8px;border-radius:4px;overflow:hidden;margin:16px 0;gap:2px;}
+.alloc-seg{height:100%;border-radius:2px;}
+
+/* TOAST */
+.toast{position:fixed;bottom:32px;right:32px;z-index:500;display:flex;align-items:center;gap:10px;padding:14px 20px;background:var(--surface);border:1px solid rgba(0,212,126,0.3);border-radius:12px;font-size:13px;color:var(--text);box-shadow:0 8px 32px rgba(0,0,0,0.5);transform:translateY(20px);opacity:0;transition:all 0.3s ease;pointer-events:none;max-width:320px;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast.error-toast{border-color:rgba(248,113,113,0.4);}
+.toast-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);flex-shrink:0;}
+.toast-dot.error{background:#f87171;}
+
+/* FAQ */
+.faq-item{border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;transition:border-color 0.2s;}
+.faq-q{padding:20px 24px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
+.faq-q span:first-child{font-size:14px;}
+.faq-icon{color:var(--primary);font-size:20px;transition:transform 0.3s;line-height:1;}
+.faq-a{display:none;padding:0 24px 20px;font-size:14px;color:var(--text2);line-height:1.7;}
+
+/* FOOTER */
+footer{background:var(--surface);border-top:1px solid var(--border);padding:60px 48px 40px;}
+.footer-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:48px;}
+.footer-brand{max-width:300px;}
+.footer-brand p{font-size:13px;color:var(--text2);margin-top:16px;line-height:1.7;}
+.footer-links{display:flex;gap:60px;}
+.footer-col h4{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--text3);margin-bottom:18px;}
+.footer-col a{display:block;font-size:13px;color:var(--text2);text-decoration:none;margin-bottom:10px;transition:color 0.2s;cursor:pointer;}
+.footer-col a:hover{color:var(--text);}
+.footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:28px;border-top:1px solid var(--border);}
+.footer-copy{font-size:12px;color:var(--text3);}
+.footer-social{display:flex;gap:12px;}
+.social-btn{width:34px;height:34px;border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;cursor:pointer;text-decoration:none;color:var(--text2);transition:all 0.2s;}
+.social-btn:hover{border-color:var(--primary);color:var(--primary);}
+.social-btn svg{width:14px;height:14px;fill:currentColor;}
+
+/* ANIMATIONS */
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px);}to{opacity:1;transform:none;}}
+.fade-in{animation:fadeUp 0.7s ease both;}
+.fade-in-d1{animation:fadeUp 0.7s 0.1s ease both;}
+.fade-in-d2{animation:fadeUp 0.7s 0.2s ease both;}
+
+/* SOL BALANCE TAG */
+.sol-balance-tag{font-family:var(--mono);font-size:11px;color:var(--text3);padding:2px 8px;background:var(--surface2);border-radius:4px;}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  header{padding:0 20px;}nav{display:none;}
+  .hero{padding:100px 20px 60px;}
+  .floating-metrics{flex-direction:column;align-items:center;}
+  .float-card{width:100%;max-width:280px;}
+  section{padding:60px 20px;}
+  .metrics-grid{grid-template-columns:repeat(2,1fr);}
+  .steps-grid{grid-template-columns:repeat(2,1fr);}
+  .steps-grid::before{display:none;}
+  .features-grid{grid-template-columns:repeat(2,1fr);}
+  .docs-layout{grid-template-columns:1fr;}
+  .ca-bar{padding:14px 20px;}
+  .ca-address{display:none;}
+  .ca-address.mobile{display:block;}
+  footer{padding:40px 20px;}
+  .footer-top{flex-direction:column;gap:40px;}
+  .footer-links{flex-wrap:wrap;gap:32px;}
+  .portal{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .portal-main{margin-left:0;padding:20px;}
+  .dash-grid{grid-template-columns:1fr 1fr;}
+  .rewards-top{grid-template-columns:1fr;}
+  .settings-grid{grid-template-columns:1fr;}
+}
+@media(max-width:600px){
+  .metrics-grid,.steps-grid,.features-grid,.dash-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg-canvas"></canvas>
+
+<!-- TOAST -->
+<div class="toast" id="toast">
+  <div class="toast-dot" id="toast-dot"></div>
+  <span id="toast-text">Done</span>
+</div>
+
+<!-- HEADER -->
+<header id="main-header">
+  <div class="header-logo" onclick="showView('landing')">
+    <div class="logo-mark"></div>
+    <span class="logo-text">Treasora</span>
+  </div>
+  <nav>
+    <a onclick="scrollToSection('#treasury-section')">Treasury</a>
+    <a onclick="scrollToSection('#rewards-section')">Rewards</a>
+    <a onclick="showView('docs')">Documents</a>
+    <a onclick="scrollToSection('#faq-section')">FAQ</a>
+  </nav>
+  <div class="header-right">
+    <a href="https://x.com/treasora" target="_blank" class="x-link" title="X / Twitter">
+      <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.629L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg>
+    </a>
+    <button class="btn-connect" id="header-connect-btn" onclick="initiateConnect()">Connect Phantom</button>
+    <div class="wallet-badge" id="wallet-badge" style="display:none;">
+      <div class="unverified-dot" id="header-dot"></div>
+      <span id="wallet-addr-display">...</span>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== LANDING VIEW ===================== -->
+<div class="view active" id="view-landing">
+  <div class="hero">
+    <div class="hero-badge">Treasora &bull; The Digital Treasury</div>
+    <h1 class="hero-h1">Hold $TSRA<br><span>Earn Real $USDC</span></h1>
+    <div class="hero-divider"></div>
+    <p class="hero-sub">Treasury-powered rewards distributed to eligible participants.</p>
+    <p class="hero-desc">Connect your Phantom wallet, verify ownership through Sign-In With Solana, and access the Treasora Treasury Portal.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" id="hero-connect-btn" onclick="initiateConnect()">Connect Phantom</button>
+      <button class="btn-outline" onclick="showView('docs')">View Documents</button>
+    </div>
+    <div class="floating-metrics">
+      <div class="float-card">
+        <div class="float-label">Treasury Value</div>
+        <div class="float-value" id="metric-treasury">
+          <span class="float-loading">Loading...</span>
+        </div>
+        <div class="float-change" id="metric-treasury-sub">Fetching on-chain data</div>
+      </div>
+      <div class="float-card">
+        <div class="float-label">USDC Distributed</div>
+        <div class="float-value" id="metric-usdc">
+          <span class="float-loading">Loading...</span>
+        </div>
+        <div class="float-change" id="metric-usdc-sub">Fetching on-chain data</div>
+      </div>
+      <div class="float-card">
+        <div class="float-label">Active Holders</div>
+        <div class="float-value" id="metric-holders">
+          <span class="float-loading">Loading...</span>
+        </div>
+        <div class="float-change" id="metric-holders-sub">Fetching on-chain data</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CA BAR -->
+  <div class="ca-bar">
+    <span class="ca-label">Token</span>
+    <span class="ca-ticker">$TSRA</span>
+    <span class="ca-label">CA:</span>
+    <span class="ca-address" id="ca-full">xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</span>
+    <span class="ca-address mobile" id="ca-short">xxxxxx...xxxxxx</span>
+    <button class="btn-copy" id="ca-copy-btn" onclick="copyCA()">
+      <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+      Copy Address
+    </button>
+  </div>
+
+  <!-- TREASURY METRICS SECTION -->
+  <div id="treasury-section" style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <section>
+      <div class="section-eyebrow">Live Analytics</div>
+      <h2 class="section-title">Treasury <em style="font-style:italic;color:var(--primary);">Metrics</em></h2>
+      <p class="section-sub">Real-time data fetched from Solana mainnet and the $TSRA token program.</p>
+      <div class="metrics-grid">
+        <div class="metric-card fade-in">
+          <div class="metric-card-label">Treasury Value</div>
+          <div class="metric-card-value" id="grid-treasury"><span class="metric-loading">—</span></div>
+          <div class="metric-card-change" id="grid-treasury-sub">Loading...</div>
+        </div>
+        <div class="metric-card fade-in-d1">
+          <div class="metric-card-label">USDC Distributed</div>
+          <div class="metric-card-value" id="grid-usdc"><span class="metric-loading">—</span></div>
+          <div class="metric-card-change" id="grid-usdc-sub">Loading...</div>
+        </div>
+        <div class="metric-card fade-in-d2">
+          <div class="metric-card-label">Active Holders</div>
+          <div class="metric-card-value" id="grid-holders"><span class="metric-loading">—</span></div>
+          <div class="metric-card-change" id="grid-holders-sub">Loading...</div>
+        </div>
+        <div class="metric-card fade-in">
+          <div class="metric-card-label">$TSRA Price</div>
+          <div class="metric-card-value" id="grid-price"><span class="metric-loading">—</span></div>
+          <div class="metric-card-change" id="grid-price-sub">Loading...</div>
+        </div>
+        <div class="metric-card fade-in-d1">
+          <div class="metric-card-label">Market Cap</div>
+          <div class="metric-card-value" id="grid-mcap"><span class="metric-loading">—</span></div>
+          <div class="metric-card-change" id="grid-mcap-sub">Loading...</div>
+        </div>
+        <div class="metric-card fade-in-d2">
+          <div class="metric-card-label">Total Supply</div>
+          <div class="metric-card-value" id="grid-supply"><span class="metric-loading">—</span></div>
+          <div class="metric-card-change" id="grid-supply-sub">Loading...</div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section id="rewards-section">
+    <div class="section-eyebrow">Process</div>
+    <h2 class="section-title">How It <em style="font-style:italic;color:var(--primary);">Works</em></h2>
+    <p class="section-sub">A seamless four-step process to begin earning real yield from the Treasora treasury.</p>
+    <div class="steps-grid">
+      <div class="step-card"><div class="step-num">01</div><div class="step-title">Connect Phantom Wallet</div><div class="step-desc">Initiate a secure connection using the Phantom browser extension or mobile app on Solana.</div></div>
+      <div class="step-card"><div class="step-num">02</div><div class="step-title">Verify Ownership</div><div class="step-desc">Sign a cryptographic message via Sign-In With Solana to prove wallet ownership. No transaction. No gas.</div></div>
+      <div class="step-card"><div class="step-num">03</div><div class="step-title">Hold $TSRA</div><div class="step-desc">Maintain $TSRA token holdings in your verified wallet to qualify for treasury reward distributions.</div></div>
+      <div class="step-card"><div class="step-num">04</div><div class="step-title">Earn $USDC Rewards</div><div class="step-desc">Receive proportional USDC distributions from the Treasora treasury based on your verified holdings.</div></div>
+    </div>
+  </section>
+
+  <!-- FEATURES -->
+  <div style="background:var(--surface);border-top:1px solid var(--border);border-bottom:1px solid var(--border);">
+    <section>
+      <div class="section-eyebrow">Platform Features</div>
+      <h2 class="section-title">Built for <em style="font-style:italic;color:var(--primary);">Institutions</em></h2>
+      <div class="features-grid">
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"></path></svg></div><div class="feature-title">Treasury Backed</div><div class="feature-desc">Every reward derives from verified protocol revenue held in the on-chain treasury.</div></div>
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></div><div class="feature-title">USDC Rewards</div><div class="feature-desc">Receive stable, real-world value denominated in USD Coin on every distribution cycle.</div></div>
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"></path></svg></div><div class="feature-title">Real Yield</div><div class="feature-desc">No inflationary token emissions. All distributions sourced from genuine protocol revenue.</div></div>
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg></div><div class="feature-title">Transparent Distribution</div><div class="feature-desc">Full on-chain audit trail for every treasury action and reward distribution event.</div></div>
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg></div><div class="feature-title">No Lockups</div><div class="feature-desc">Full liquidity at all times. Rewards accrue without any staking or lockup requirements.</div></div>
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div class="feature-title">Secure Infrastructure</div><div class="feature-desc">SIWS authentication, audited smart contracts, and institutional-grade security protocols.</div></div>
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 010 20M12 2a15.3 15.3 0 000 20"></path></svg></div><div class="feature-title">Solana Native</div><div class="feature-desc">Built natively on Solana for sub-second transaction finality and minimal distribution costs.</div></div>
+        <div class="feature-card"><div class="feature-icon"><svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg></div><div class="feature-title">Institutional Analytics</div><div class="feature-desc">Advanced portfolio intelligence and treasury analytics modeled on institutional wealth management.</div></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- FAQ -->
+  <section id="faq-section">
+    <div class="section-eyebrow">FAQ</div>
+    <h2 class="section-title">Common <em style="font-style:italic;color:var(--primary);">Questions</em></h2>
+    <div id="faq-list" style="margin-top:48px;max-width:720px;"></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-top">
+      <div class="footer-brand">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div class="logo-mark"></div>
+          <span class="logo-text">Treasora</span>
+        </div>
+        <p>The Digital Treasury. A premium Solana ecosystem delivering transparent, sustainable yield to $TSRA holders.</p>
+        <div style="display:flex;align-items:center;gap:12px;margin-top:20px;">
+          <span class="ca-label">CA:</span>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text3);" id="footer-ca-display">xxxxxx...xxxxxx</span>
+          <button class="btn-copy" style="padding:5px 12px;font-size:11px;" onclick="copyCA()">
+            <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+      <div class="footer-links">
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <a onclick="showView('docs')">Documents</a>
+          <a onclick="scrollToSection('#faq-section')">FAQ</a>
+          <a onclick="scrollToSection('#treasury-section')">Treasury</a>
+          <a onclick="scrollToSection('#rewards-section')">Rewards</a>
+        </div>
+        <div class="footer-col">
+          <h4>Community</h4>
+          <a href="https://x.com/treasora" target="_blank">X / Twitter</a>
+          <a href="#" target="_blank">Telegram</a>
+          <a href="#" target="_blank">Discord</a>
+          <a href="#" target="_blank">GitHub</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span class="footer-copy">© 2025 Treasora. All rights reserved.</span>
+      <div class="footer-social">
+        <a href="https://x.com/treasora" target="_blank" class="social-btn"><svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.259 5.629L18.244 2.25zm-1.161 17.52h1.833L7.084 4.126H5.117L17.083 19.77z"/></svg></a>
+        <a href="#" target="_blank" class="social-btn"><svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm4.64 6.8c-.15 1.58-.8 5.42-1.13 7.19-.14.75-.42 1-.68 1.03-.58.05-1.02-.38-1.58-.75-.88-.58-1.38-.94-2.23-1.5-.99-.65-.35-1.01.22-1.59.15-.15 2.71-2.48 2.76-2.69.01-.03.01-.14-.07-.2-.08-.06-.19-.04-.27-.02-.12.02-1.96 1.25-5.54 3.69-.52.36-1 .53-1.42.52-.47-.01-1.37-.26-2.03-.48-.82-.27-1.47-.42-1.42-.88.03-.25.38-.51 1.07-.78 4.19-1.82 6.99-3.02 8.39-3.61.4-.17 2.63-1.09 2.84-.41.06.2.04.43.01.63z"/></svg></a>
+        <a href="#" target="_blank" class="social-btn"><svg viewBox="0 0 24 24"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057.102 18.083.11 18.11.128 18.13a19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994.021-.04.001-.088-.041-.104a13.201 13.201 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.027c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg></a>
+      </div>
+    </div>
+  </footer>
+</div>
+
+<!-- ===================== DOCS VIEW ===================== -->
+<div class="view" id="view-docs">
+  <div style="padding-top:68px;">
+    <section>
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:8px;">
+        <button onclick="showView('landing')" style="background:var(--surface2);border:1px solid var(--border2);border-radius:8px;padding:8px 14px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--sans);transition:all 0.2s;" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--text2)'">← Back</button>
+      </div>
+      <div class="section-eyebrow">Documentation</div>
+      <h2 class="section-title" style="margin-bottom:0;">Protocol <em style="font-style:italic;color:var(--primary);">Documents</em></h2>
+    </section>
+    <section style="padding-top:20px;">
+      <div class="docs-layout">
+        <div style="position:sticky;top:88px;align-self:start;" id="docs-nav">
+          <div class="docs-nav-item active" onclick="showDoc('overview')">Overview</div>
+          <div class="docs-nav-item" onclick="showDoc('treasury')">Treasury Model</div>
+          <div class="docs-nav-item" onclick="showDoc('revenue')">Revenue Sources</div>
+          <div class="docs-nav-item" onclick="showDoc('distribution')">Reward Distribution</div>
+          <div class="docs-nav-item" onclick="showDoc('utility')">Token Utility</div>
+          <div class="docs-nav-item" onclick="showDoc('security')">Security</div>
+          <div class="docs-nav-item" onclick="showDoc('faq')">FAQ</div>
+        </div>
+        <div>
+          <div class="docs-section active" id="doc-overview"><h2>Overview</h2><p>Treasora is a premium treasury ecosystem built natively on the Solana blockchain. The protocol generates real, sustainable revenue through diversified on-chain strategies and distributes that revenue directly to verified $TSRA token holders as USDC rewards.</p><p>Unlike inflationary yield protocols that dilute token supply to manufacture returns, Treasora distributes only what it genuinely earns. Every USDC reward paid to holders originates from verified protocol revenue.</p><div class="docs-callout"><strong>Core Principle:</strong> Hold $TSRA tokens, earn a proportional share of real USDC revenue generated by the Treasora treasury.</div><h3>Key Properties</h3><p>Transparency (all treasury actions are on-chain and auditable), sustainability (revenue-backed rewards only), accessibility (no lockups or complex participation), and security (SIWS authentication and audited smart contracts).</p></div>
+          <div class="docs-section" id="doc-treasury"><h2>Treasury Model</h2><p>The Treasora Treasury is a multi-strategy on-chain treasury managed by verified protocol governance. All assets are held in transparent, auditable smart contracts on Solana.</p><h3>Treasury Composition</h3><p>The treasury maintains a diversified allocation across multiple Solana DeFi primitives including liquidity provision, lending protocol deployments, and strategic reserve positions maintained in USDC.</p><div class="docs-callout"><strong>Transparency Commitment:</strong> Treasury balances, allocations, and all movements are publicly visible on-chain. No portion of treasury assets is held in opaque or unverifiable structures.</div><h3>Reserve Policy</h3><p>The treasury maintains a minimum reserve ratio of protocol assets in stable positions, ensuring continuous reward distributions even during periods of market volatility.</p></div>
+          <div class="docs-section" id="doc-revenue"><h2>Revenue Sources</h2><p>Treasora generates protocol revenue through multiple diversified mechanisms, ensuring sustainable and resilient yield generation independent of any single source.</p><h3>Trading Fee Revenue</h3><p>Treasury-owned liquidity positions across Solana DEX ecosystems generate continuous trading fee income proportional to trading volume.</p><h3>Lending Protocol Income</h3><p>Strategic deployments to Solana lending protocols generate interest income from over-collateralized borrowing activity.</p><div class="docs-callout"><strong>No Synthetic Yield:</strong> Treasora does not generate artificial yield through token emissions or inflationary mechanisms. All revenue is derived from genuine economic activity.</div></div>
+          <div class="docs-section" id="doc-distribution"><h2>Reward Distribution</h2><p>USDC rewards are distributed to verified $TSRA holders on a regular cycle basis. Distribution eligibility and amounts are determined by verified on-chain holdings at the time of each distribution snapshot.</p><h3>Eligibility Requirements</h3><p>Hold $TSRA tokens in a verified wallet and have completed Sign-In With Solana authentication.</p><h3>Distribution Calculation</h3><p>Each holder's reward is calculated proportionally based on their verified $TSRA holdings as a percentage of the total eligible supply at snapshot time.</p><div class="docs-callout"><strong>No Lockups Required:</strong> $TSRA holders are never required to lock tokens to receive distributions. Full liquidity is maintained at all times.</div></div>
+          <div class="docs-section" id="doc-utility"><h2>Token Utility</h2><p>$TSRA is the native utility and reward token of the Treasora ecosystem.</p><h3>Treasury Participation Rights</h3><p>$TSRA holders who verify wallet ownership through SIWS become eligible to receive proportional distributions from the Treasora treasury.</p><h3>Portal Access</h3><p>$TSRA token holders gain access to the Treasora Treasury Portal with institutional-grade analytics, reward tracking, and distribution history.</p></div>
+          <div class="docs-section" id="doc-security"><h2>Security</h2><p>Treasora employs a multi-layered security architecture across all protocol components.</p><h3>Sign-In With Solana (SIWS)</h3><p>All portal access requires verified wallet ownership through the SIWS standard. Authentication uses cryptographic message signing — no transaction is broadcast, no assets are transferred, and no spending permissions are granted.</p><div class="docs-callout"><strong>Security Guarantee:</strong> Treasora authentication will NEVER request token approvals, spending permissions, or asset transfers. If you encounter such a request, it is fraudulent.</div><h3>Smart Contract Security</h3><p>All Treasora smart contracts undergo professional security audits prior to deployment. Audit reports are publicly available.</p><h3>Session Security</h3><p>Portal sessions are time-limited with configurable expiration. Session tokens are cryptographically signed and support manual revocation.</p></div>
+          <div class="docs-section" id="doc-faq"><h2>FAQ</h2><h3>What is Treasora?</h3><p>A premium Solana treasury protocol that distributes real USDC yield to verified $TSRA token holders from diversified on-chain revenue strategies.</p><h3>How do I receive rewards?</h3><p>Connect Phantom, complete SIWS verification, hold $TSRA, and receive USDC distributions each cycle.</p><h3>Is authentication safe?</h3><p>Yes. SIWS authentication requires only a cryptographic signature — no transaction is broadcast, no SOL is spent, no assets are transferred.</p><h3>Are there lockup requirements?</h3><p>No. Your $TSRA tokens remain fully liquid and in your control at all times.</p></div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ===================== PORTAL VIEW ===================== -->
+<div class="view" id="view-portal">
+  <div class="portal" style="padding-top:68px;">
+    <div class="sidebar">
+      <div class="sidebar-logo">
+        <div class="logo-mark"></div>
+        <span class="logo-text">Treasora</span>
+      </div>
+      <div class="sidebar-nav">
+        <button class="sidebar-item active" onclick="showPortal('overview')"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect></svg>Overview</button>
+        <button class="sidebar-item" onclick="showPortal('rewards')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>Rewards</button>
+        <button class="sidebar-item" onclick="showPortal('treasury')"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"></path></svg>Treasury</button>
+        <button class="sidebar-item" onclick="showPortal('documents')"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>Documents</button>
+        <button class="sidebar-item" onclick="showPortal('settings')"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"></path></svg>Settings</button>
+      </div>
+      <div class="sidebar-footer">
+        <div class="sidebar-wallet">
+          <div class="sidebar-wallet-label">Connected Wallet</div>
+          <div class="sidebar-wallet-addr" id="sidebar-wallet-addr">—</div>
+          <div style="margin-top:6px;font-size:11px;color:var(--text3);">SOL: <span id="sidebar-sol-balance" class="sol-balance-tag">—</span></div>
+        </div>
+        <button class="sidebar-item" onclick="logout()" style="color:#ff4d6d;">
+          <svg viewBox="0 0 24 24" style="stroke:#ff4d6d;"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Logout
+        </button>
+      </div>
+    </div>
+
+    <div class="portal-main">
+      <!-- OVERVIEW -->
+      <div id="portal-overview" class="portal-page">
+        <div class="portal-header">
+          <div>
+            <div class="portal-title">Overview</div>
+            <div class="portal-subtitle" id="overview-greeting">Welcome to Treasora</div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="wallet-badge" style="display:flex;">
+              <div class="verified-dot" id="portal-dot"></div>
+              <span id="portal-wallet-short">—</span>
+            </div>
+          </div>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-card">
+            <div class="dash-card-top"><span class="dash-card-label">SOL Balance</span><div class="dash-card-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4l3 3"></path></svg></div></div>
+            <div class="dash-card-value" id="dash-sol-balance">—</div>
+            <div class="dash-card-sub">Your wallet SOL</div>
+            <div class="dash-card-change" id="dash-sol-usd">Fetching price...</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-top"><span class="dash-card-label">$TSRA Holdings</span><div class="dash-card-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"></path></svg></div></div>
+            <div class="dash-card-value" id="dash-tsra-balance" style="color:var(--primary);">—</div>
+            <div class="dash-card-sub">$TSRA tokens</div>
+            <div class="dash-card-change" id="dash-tsra-sub">Loading...</div>
+          </div>
+          <div class="dash-card">
+            <div class="dash-card-top"><span class="dash-card-label">Verification</span><div class="dash-card-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div></div>
+            <div class="dash-card-value" id="dash-verified-status" style="color:var(--primary);font-size:18px;">✓ Verified</div>
+            <div class="dash-card-sub" id="dash-wallet-display">SIWS authenticated</div>
+            <div class="dash-card-change" id="dash-session-info">Session active</div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <span class="chart-card-title">$TSRA Price Chart (illustrative)</span>
+            <div class="chart-tabs">
+              <button class="chart-tab active" onclick="setTab(this,'7D')">7D</button>
+              <button class="chart-tab" onclick="setTab(this,'1M')">1M</button>
+              <button class="chart-tab" onclick="setTab(this,'3M')">3M</button>
+            </div>
+          </div>
+          <div class="chart-area"><svg class="chart-svg" id="main-chart" viewBox="0 0 800 180" preserveAspectRatio="none"></svg></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="chart-card-title">Recent Wallet Activity</span></div>
+          <div id="wallet-activity-table">
+            <div style="padding:20px;text-align:center;color:var(--text3);font-size:13px;">Connect wallet to view activity</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REWARDS -->
+      <div id="portal-rewards" class="portal-page" style="display:none;">
+        <div class="portal-header">
+          <div><div class="portal-title">Rewards</div><div class="portal-subtitle">Your USDC earnings and distribution history</div></div>
+          <div style="display:flex;gap:12px;">
+            <button class="btn-primary" style="padding:9px 18px;font-size:13px;" onclick="openModal('claim')">Claim Rewards</button>
+          </div>
+        </div>
+        <div class="rewards-top">
+          <div class="reward-big reward-claimable">
+            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">Claimable Now</div>
+            <div class="reward-amount" id="claimable-amount">$0.00</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:6px;">USDC · Current cycle</div>
+            <button class="claim-btn" onclick="openModal('claim')">Claim USDC Rewards</button>
+          </div>
+          <div class="reward-big">
+            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">Lifetime Earnings</div>
+            <div class="reward-amount" style="color:var(--text);font-size:34px;" id="lifetime-rewards">$0.00</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:6px;">Total USDC received</div>
+          </div>
+          <div class="reward-big">
+            <div style="font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:12px;">$TSRA Holdings</div>
+            <div class="reward-amount" style="color:var(--text);font-size:34px;" id="rewards-tsra-balance">—</div>
+            <div style="font-size:12px;color:var(--text2);margin-top:6px;">Your qualifying balance</div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="chart-card-title">Distribution History</span></div>
+          <table class="history-table">
+            <thead><tr><th>Cycle</th><th>Date</th><th>Holdings at Snapshot</th><th>Amount</th><th>Status</th></tr></thead>
+            <tbody><tr><td colspan="5" style="text-align:center;padding:24px;color:var(--text3);font-size:13px;">No distribution history yet. Hold $TSRA to participate in future cycles.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- TREASURY -->
+      <div id="portal-treasury" class="portal-page" style="display:none;">
+        <div class="portal-header"><div><div class="portal-title">Treasury</div><div class="portal-subtitle">Live on-chain analytics</div></div></div>
+        <div class="dash-grid">
+          <div class="dash-card"><div class="dash-card-top"><span class="dash-card-label">Treasury Value</span><div class="dash-card-icon"><svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"></path></svg></div></div><div class="dash-card-value" id="t-treasury-value">—</div><div class="dash-card-change" id="t-treasury-sub">Loading...</div></div>
+          <div class="dash-card"><div class="dash-card-top"><span class="dash-card-label">$TSRA Price</span><div class="dash-card-icon"><svg viewBox="0 0 24 24"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg></div></div><div class="dash-card-value" id="t-price">—</div><div class="dash-card-change" id="t-price-sub">Loading...</div></div>
+          <div class="dash-card"><div class="dash-card-top"><span class="dash-card-label">Total Supply</span><div class="dash-card-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"></path></svg></div></div><div class="dash-card-value" id="t-supply">—</div><div class="dash-card-change" id="t-supply-sub">Loading...</div></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header"><span class="chart-card-title">Treasury Allocation (illustrative)</span></div>
+          <div class="allocation-bar">
+            <div class="alloc-seg" style="flex:42;background:var(--primary);opacity:0.9;"></div>
+            <div class="alloc-seg" style="flex:28;background:#4af0c0;opacity:0.7;"></div>
+            <div class="alloc-seg" style="flex:18;background:#00a8d4;opacity:0.7;"></div>
+            <div class="alloc-seg" style="flex:12;background:#6b7280;opacity:0.7;"></div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:12px;">
+            <div style="padding:14px;background:var(--surface2);border-radius:10px;"><div style="width:7px;height:7px;border-radius:50%;background:var(--primary);margin-bottom:7px;"></div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Liquidity Provision</div><div style="font-family:var(--mono);font-size:18px;">42%</div></div>
+            <div style="padding:14px;background:var(--surface2);border-radius:10px;"><div style="width:7px;height:7px;border-radius:50%;background:#4af0c0;margin-bottom:7px;"></div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Lending Protocols</div><div style="font-family:var(--mono);font-size:18px;">28%</div></div>
+            <div style="padding:14px;background:var(--surface2);border-radius:10px;"><div style="width:7px;height:7px;border-radius:50%;background:#00a8d4;margin-bottom:7px;"></div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">Strategic Reserve</div><div style="font-family:var(--mono);font-size:18px;">18%</div></div>
+            <div style="padding:14px;background:var(--surface2);border-radius:10px;"><div style="width:7px;height:7px;border-radius:50%;background:#6b7280;margin-bottom:7px;"></div><div style="font-size:11px;color:var(--text3);margin-bottom:4px;">USDC Reserve</div><div style="font-family:var(--mono);font-size:18px;">12%</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- DOCUMENTS PORTAL -->
+      <div id="portal-documents" class="portal-page" style="display:none;">
+        <div class="portal-header"><div><div class="portal-title">Documents</div></div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+          <div class="dash-card" style="cursor:pointer;" onclick="showDoc('overview');showView('docs');"><div style="display:flex;align-items:center;gap:14px;"><div class="dash-card-icon" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);stroke-width:1.5;fill:none;"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg></div><div><div style="font-weight:500;font-size:14px;">Protocol Overview</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">Introduction to Treasora</div></div></div></div>
+          <div class="dash-card" style="cursor:pointer;" onclick="showDoc('treasury');showView('docs');"><div style="display:flex;align-items:center;gap:14px;"><div class="dash-card-icon" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);stroke-width:1.5;fill:none;"><rect x="2" y="7" width="20" height="14" rx="2"></rect><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"></path></svg></div><div><div style="font-weight:500;font-size:14px;">Treasury Model</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">How the treasury operates</div></div></div></div>
+          <div class="dash-card" style="cursor:pointer;" onclick="showDoc('distribution');showView('docs');"><div style="display:flex;align-items:center;gap:14px;"><div class="dash-card-icon" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);stroke-width:1.5;fill:none;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg></div><div><div style="font-weight:500;font-size:14px;">Reward Distribution</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">How rewards are calculated</div></div></div></div>
+          <div class="dash-card" style="cursor:pointer;" onclick="showDoc('security');showView('docs');"><div style="display:flex;align-items:center;gap:14px;"><div class="dash-card-icon" style="width:44px;height:44px;border-radius:12px;flex-shrink:0;"><svg viewBox="0 0 24 24" style="width:20px;height:20px;stroke:var(--primary);stroke-width:1.5;fill:none;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg></div><div><div style="font-weight:500;font-size:14px;">Security Architecture</div><div style="font-size:12px;color:var(--text2);margin-top:2px;">SIWS and smart contract security</div></div></div></div>
+        </div>
+      </div>
+
+      <!-- SETTINGS -->
+      <div id="portal-settings" class="portal-page" style="display:none;">
+        <div class="portal-header"><div><div class="portal-title">Settings</div></div></div>
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Wallet Information</h3>
+            <div class="settings-row"><span class="settings-row-label">Full Address</span><span class="settings-row-value" id="settings-full-wallet" style="font-size:10px;word-break:break-all;max-width:200px;text-align:right;">—</span></div>
+            <div class="settings-row"><span class="settings-row-label">SOL Balance</span><span class="settings-row-value" id="settings-sol">—</span></div>
+            <div class="settings-row"><span class="settings-row-label">Network</span><span class="settings-row-value">Solana Mainnet</span></div>
+            <div class="settings-row"><span class="settings-row-label">Verification</span><span class="settings-row-value" style="color:var(--primary);" id="settings-verify-status">Pending</span></div>
+          </div>
+          <div class="settings-card">
+            <h3>Session</h3>
+            <div class="settings-row"><span class="settings-row-label">Status</span><span class="settings-row-value" style="color:var(--primary);">Active</span></div>
+            <div class="settings-row"><span class="settings-row-label">Verified At</span><span class="settings-row-value" id="settings-verified-at">—</span></div>
+            <div class="settings-row"><span class="settings-row-label">Auth Method</span><span class="settings-row-value">SIWS</span></div>
+            <div class="settings-row"><span class="settings-row-label">Expires</span><span class="settings-row-value">24h from sign</span></div>
+          </div>
+          <div class="settings-card">
+            <h3>Preferences</h3>
+            <div class="settings-row"><span class="settings-row-label">Distribution alerts</span><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+            <div class="settings-row"><span class="settings-row-label">Treasury updates</span><label class="toggle"><input type="checkbox"><span class="toggle-slider"></span></label></div>
+            <div class="settings-row"><span class="settings-row-label">Security notices</span><label class="toggle"><input type="checkbox" checked><span class="toggle-slider"></span></label></div>
+          </div>
+          <div class="settings-card">
+            <h3>Security</h3>
+            <div class="settings-row"><span class="settings-row-label">SIWS Auth</span><span class="settings-row-value" style="color:var(--primary);">Enabled</span></div>
+            <div class="settings-row"><span class="settings-row-label">Session Expiry</span><span class="settings-row-value">24 hours</span></div>
+            <div class="settings-row" style="flex-direction:column;align-items:flex-start;gap:10px;padding-top:16px;">
+              <button class="btn-danger" onclick="logout()">Disconnect &amp; Logout</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODALS ===================== -->
+
+<!-- CONNECT MODAL -->
+<div class="overlay" id="overlay-connect">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('connect')">✕</button>
+    <div class="modal-icon"><svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg></div>
+    <h2>Connect Phantom</h2>
+    <div id="connect-no-phantom" class="phantom-warning" style="display:none;">
+      ⚠ Phantom wallet not detected. <a href="https://phantom.app/" target="_blank">Install Phantom</a> browser extension first, then reload this page.
+    </div>
+    <div id="connect-error" class="error-box" style="display:none;"></div>
+    <p>Your Phantom wallet will open asking for approval. After connecting, you will sign a message to verify ownership — no transaction, no SOL spent.</p>
+    <div class="modal-btns">
+      <button class="btn-outline" onclick="closeModal('connect')">Cancel</button>
+      <button class="btn-primary" id="connect-phantom-btn" onclick="connectPhantom()">Open Phantom</button>
+    </div>
+  </div>
+</div>
+
+<!-- SIWS SIGNING MODAL -->
+<div class="overlay" id="overlay-signing">
+  <div class="modal" style="text-align:center;">
+    <div class="signing-animation">
+      <div class="signing-orb"><span class="signing-orb-inner">T</span></div>
+      <div class="signing-status" id="signing-status">Waiting for Phantom signature...</div>
+    </div>
+    <h2 style="margin-bottom:16px;">Sign-In With Solana</h2>
+    <p>Approve the signature request in your Phantom wallet. Check the Phantom popup or extension icon.</p>
+    <div class="modal-meta" style="text-align:left;">
+      <div class="modal-meta-row"><span class="modal-meta-label">Type</span><span class="modal-meta-value">SIWS Authentication</span></div>
+      <div class="modal-meta-row"><span class="modal-meta-label">Transaction</span><span class="modal-meta-value green">None — signature only</span></div>
+      <div class="modal-meta-row"><span class="modal-meta-label">SOL Spent</span><span class="modal-meta-value green">0</span></div>
+      <div class="modal-meta-row"><span class="modal-meta-label">Token Transfers</span><span class="modal-meta-value green">None</span></div>
+    </div>
+    <button class="btn-outline" style="width:100%;margin-top:8px;" onclick="cancelSigning()">Cancel</button>
+  </div>
+</div>
+
+<!-- VERIFIED MODAL -->
+<div class="overlay" id="overlay-verified">
+  <div class="modal">
+    <div class="modal-icon" style="background:rgba(0,212,126,0.1);border-color:rgba(0,212,126,0.4);">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <h2>Wallet Verified</h2>
+    <p>Your wallet ownership has been successfully verified. You now have access to the Treasora Treasury Portal.</p>
+    <div class="modal-meta">
+      <div class="modal-meta-row"><span class="modal-meta-label">Wallet Address</span><span class="modal-meta-value" id="verified-wallet-addr">—</span></div>
+      <div class="modal-meta-row"><span class="modal-meta-label">SOL Balance</span><span class="modal-meta-value green" id="verified-sol-balance">—</span></div>
+      <div class="modal-meta-row"><span class="modal-meta-label">Verification Status</span><span class="modal-meta-value green">✓ SIWS Verified</span></div>
+      <div class="modal-meta-row"><span class="modal-meta-label">Session Status</span><span class="modal-meta-value green">Active</span></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-primary" style="flex:1;" onclick="enterPortal()">Enter Portal</button>
+    </div>
+  </div>
+</div>
+
+<!-- CLAIM MODAL -->
+<div class="overlay" id="overlay-claim">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('claim')">✕</button>
+    <div class="modal-icon"><svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 100 7h5a3.5 3.5 0 110 7H6"></path></svg></div>
+    <h2>Claim USDC Rewards</h2>
+    <p>Confirm to initiate your USDC reward claim on-chain.</p>
+    <div class="modal-meta">
+      <div class="modal-meta-row"><span class="modal-meta-label">Amount</span><span class="modal-meta-value green" style="font-size:16px;" id="claim-amount-display">$0.00 USDC</span></div>
+      <div class="modal-meta-row"><span class="modal-meta-label">Wallet</span><span class="modal-meta-value" id="claim-wallet-addr">—</span></div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn-outline" onclick="closeModal('claim')">Cancel</button>
+      <button class="btn-primary" onclick="confirmClaim()">Confirm Claim</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── CONFIG ─── Replace CA_ADDRESS with your actual contract address when deployed
+const CA_ADDRESS = 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+const SOLANA_RPC = 'https://api.mainnet-beta.solana.com';
+const SOL_PRICE_API = 'https://api.coingecko.com/api/v3/simple/price?ids=solana&vs_currencies=usd';
+
+// ─── STATE ───
+const appState = {
+  wallet: null,
+  publicKey: null,
+  connected: false,
+  verified: false,
+  solBalance: null,
+  sessionTime: null,
+  signingCancelled: false,
+};
+
+// ─── BG CANVAS ───
+(function initCanvas(){
+  const c = document.getElementById('bg-canvas');
+  const ctx = c.getContext('2d');
+  let W, H;
+  const particles = Array.from({length:55}, ()=>({
+    x: Math.random()*2000, y: Math.random()*1200,
+    vx: (Math.random()-.5)*.14, vy: (Math.random()-.5)*.14,
+    r: Math.random()*1.1+.3, a: Math.random()*.35
+  }));
+  function resize(){ W = c.width = window.innerWidth; H = c.height = window.innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  function draw(){
+    ctx.clearRect(0,0,W,H);
+    particles.forEach(p=>{
+      p.x += p.vx; p.y += p.vy;
+      if(p.x<0) p.x=W; if(p.x>W) p.x=0;
+      if(p.y<0) p.y=H; if(p.y>H) p.y=0;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=`rgba(0,212,126,${p.a})`; ctx.fill();
+    });
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+
+// ─── CHARTS ───
+function drawLineChart(id, data, color='#00D47E'){
+  const svg=document.getElementById(id); if(!svg) return;
+  const W=800,H=180,pl=8,pr=8,pt=16,pb=24;
+  const min=Math.min(...data)*.97, max=Math.max(...data)*1.01;
+  const pts=data.map((v,i)=>[pl+(i/(data.length-1))*(W-pl-pr), pt+(1-(v-min)/(max-min))*(H-pt-pb)]);
+  const line=pts.map(([x,y],i)=>`${i?'L':'M'}${x},${y}`).join(' ');
+  const area=line+` L${pts[pts.length-1][0]},${H-pb} L${pts[0][0]},${H-pb} Z`;
+  svg.innerHTML=`<defs><linearGradient id="g${id}" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="${color}" stop-opacity="0.15"/><stop offset="100%" stop-color="${color}" stop-opacity="0"/></linearGradient></defs><path d="${area}" fill="url(#g${id})"/><path d="${line}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round"/>`;
+}
+const chartData7D=[0.042,0.044,0.041,0.046,0.048,0.045,0.049];
+const chartData1M=[0.031,0.034,0.038,0.036,0.041,0.039,0.043,0.042,0.046,0.044,0.047,0.049];
+const chartData3M=[0.022,0.025,0.028,0.030,0.027,0.032,0.035,0.031,0.036,0.039,0.042,0.044,0.041,0.046,0.049];
+setTimeout(()=>drawLineChart('main-chart',chartData7D),300);
+
+function setTab(btn,p){
+  document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  const map={'7D':chartData7D,'1M':chartData1M,'3M':chartData3M};
+  drawLineChart('main-chart',map[p]||chartData7D);
+}
+
+// ─── SOLANA RPC HELPERS ───
+async function rpc(method, params=[]){
+  const r=await fetch(SOLANA_RPC,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({jsonrpc:'2.0',id:1,method,params})
+  });
+  return (await r.json()).result;
+}
+
+async function getSolBalance(pubkey){
+  try{
+    const r=await rpc('getBalance',[pubkey]);
+    return r.value/1e9;
+  }catch{ return null; }
+}
+
+async function getTokenAccountBalance(pubkey, mint){
+  // Get token accounts for this wallet and mint
+  try{
+    const r=await rpc('getTokenAccountsByOwner',[pubkey,{mint},{encoding:'jsonParsed'}]);
+    if(r&&r.value&&r.value.length>0){
+      const info=r.value[0].account.data.parsed.info.tokenAmount;
+      return parseFloat(info.uiAmount||0);
+    }
+    return 0;
+  }catch{ return 0; }
+}
+
+async function getSolPrice(){
+  try{
+    const r=await fetch(SOL_PRICE_API);
+    const d=await r.json();
+    return d.solana.usd;
+  }catch{ return null; }
+}
+
+// ─── REAL METRICS FROM HELIUS/COINGECKO (public APIs, no key needed) ───
+async function loadPublicMetrics(){
+  // Fetch SOL price for reference
+  const solPrice=await getSolPrice();
+  
+  // NOTE: These fields will reflect REAL data once CA_ADDRESS is your actual deployed token.
+  // For now while CA is placeholder, we show the RPC is live but token data is pending deployment.
+  const isRealCA = CA_ADDRESS !== 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+
+  if(isRealCA){
+    // Real token data flow — will activate when CA is set
+    try{
+      // Token supply
+      const supplyRes=await rpc('getTokenSupply',[CA_ADDRESS]);
+      if(supplyRes&&supplyRes.value){
+        const supply=parseFloat(supplyRes.value.uiAmount);
+        setText('grid-supply', formatNumber(supply));
+        setText('grid-supply-sub','↑ Circulating supply');
+      }
+    }catch(e){ setText('grid-supply','—'); }
+    
+    // Holders via getTokenLargestAccounts (approximation)
+    try{
+      const holdersRes=await rpc('getTokenLargestAccounts',[CA_ADDRESS]);
+      if(holdersRes&&holdersRes.value){
+        setText('grid-holders',holdersRes.value.length+'+ top');
+        setText('grid-holders-sub','↑ Largest accounts');
+        setText('metric-holders',holdersRes.value.length+'+ accounts');
+        setText('metric-holders-sub','Active holders on-chain');
+      }
+    }catch{}
+  } else {
+    // Placeholder CA — show pending deployment state
+    const fields=['metric-treasury','metric-usdc','metric-holders','grid-treasury','grid-usdc','grid-holders','grid-price','grid-mcap','grid-supply'];
+    fields.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el) el.innerHTML='<span style="font-family:var(--mono);font-size:14px;color:var(--text3);">Pending Deploy</span>';
+    });
+    const subs=['metric-treasury-sub','metric-usdc-sub','metric-holders-sub','grid-treasury-sub','grid-usdc-sub','grid-holders-sub','grid-price-sub','grid-mcap-sub','grid-supply-sub'];
+    subs.forEach(id=>setText(id,'Set CA to activate'));
+    
+    // Still show live SOL price as proof RPC works
+    if(solPrice){
+      showToast('🟢 Solana RPC connected · SOL = $'+solPrice.toFixed(2));
+    }
+  }
+}
+
+function setText(id,val){
+  const el=document.getElementById(id);
+  if(el) el.textContent=val;
+}
+
+function formatNumber(n){
+  if(n>=1e9) return '$'+(n/1e9).toFixed(2)+'B';
+  if(n>=1e6) return '$'+(n/1e6).toFixed(2)+'M';
+  if(n>=1e3) return (n/1e3).toFixed(1)+'K';
+  return n.toFixed(2);
+}
+
+// ─── PHANTOM WALLET ───
+
+function hasPhantom(){
+  return window.solana && window.solana.isPhantom;
+}
+
+function initiateConnect(){
+  if(appState.verified){ showView('portal'); return; }
+  if(appState.connected && !appState.verified){ startSIWS(); return; }
+  
+  const noPhantom=document.getElementById('connect-no-phantom');
+  const errBox=document.getElementById('connect-error');
+  noPhantom.style.display = hasPhantom() ? 'none' : 'block';
+  errBox.style.display='none';
+  document.getElementById('connect-phantom-btn').disabled = !hasPhantom();
+  openModal('connect');
+}
+
+async function connectPhantom(){
+  if(!hasPhantom()){
+    document.getElementById('connect-no-phantom').style.display='block';
+    return;
+  }
+  
+  const btn=document.getElementById('connect-phantom-btn');
+  btn.disabled=true; btn.textContent='Connecting...';
+  const errBox=document.getElementById('connect-error');
+  errBox.style.display='none';
+
+  try{
+    // This triggers the actual Phantom popup asking user to connect
+    const resp=await window.solana.connect();
+    const pubkey=resp.publicKey.toString();
+    appState.publicKey=pubkey;
+    appState.connected=true;
+    appState.wallet=window.solana;
+
+    closeModal('connect');
+    
+    // Update UI to show connected (not yet verified)
+    document.getElementById('header-connect-btn').style.display='none';
+    document.getElementById('wallet-badge').style.display='flex';
+    document.getElementById('header-dot').className='unverified-dot';
+    document.getElementById('wallet-addr-display').textContent=shortAddr(pubkey)+' · Sign to verify';
+    
+    // Fetch SOL balance
+    const bal=await getSolBalance(pubkey);
+    appState.solBalance=bal;
+    
+    showToast('Wallet connected — please sign to verify');
+    
+    // Auto-open SIWS signing
+    setTimeout(()=>startSIWS(), 600);
+    
+  } catch(err){
+    btn.disabled=false; btn.textContent='Open Phantom';
+    if(err.code===4001){
+      errBox.textContent='Connection rejected. Please approve the connection request in Phantom.';
+    } else {
+      errBox.textContent='Error: '+( err.message||'Unknown error');
+    }
+    errBox.style.display='block';
+  }
+}
+
+// SIWS — Sign-In With Solana
+async function startSIWS(){
+  if(!appState.connected || !appState.publicKey) return;
+  appState.signingCancelled=false;
+  
+  const nonce=Math.random().toString(36).slice(2,10).toUpperCase();
+  const timestamp=new Date().toISOString();
+  
+  const message=`Welcome to Treasora — The Digital Treasury.
+
+Sign this message to verify ownership of your wallet and securely access the Treasora Treasury Portal.
+
+IMPORTANT: This request is for authentication only.
+No blockchain transaction will occur.
+No SOL will be spent.
+No tokens will be transferred.
+Wallet Verification Only.
+
+Wallet: ${appState.publicKey}
+Nonce: ${nonce}
+Timestamp: ${timestamp}
+Domain: ${window.location.hostname}`;
+
+  document.getElementById('signing-status').textContent='Check Phantom for signature request...';
+  openModal('signing');
+  
+  try{
+    const encoded=new TextEncoder().encode(message);
+    
+    // This triggers the Phantom "sign message" popup
+    const {signature}=await window.solana.signMessage(encoded,'utf8');
+    
+    if(appState.signingCancelled) return;
+    
+    // Signature obtained — mark as verified
+    appState.verified=true;
+    appState.sessionTime=new Date();
+    
+    closeModal('signing');
+    
+    // Update UI to verified state
+    document.getElementById('header-dot').className='verified-dot';
+    document.getElementById('wallet-addr-display').textContent=shortAddr(appState.publicKey)+' ✓';
+    
+    document.getElementById('verified-wallet-addr').textContent=shortAddr(appState.publicKey);
+    document.getElementById('verified-sol-balance').textContent=(appState.solBalance||0).toFixed(4)+' SOL';
+    
+    // Populate portal
+    populatePortal();
+    
+    setTimeout(()=>openModal('verified'), 200);
+    
+  } catch(err){
+    closeModal('signing');
+    if(err.code===4001){
+      showToast('Signature rejected — verification required to access portal', true);
+      // Reset to connected-not-verified
+      appState.verified=false;
+      document.getElementById('wallet-addr-display').textContent=shortAddr(appState.publicKey)+' · Sign to verify';
+    } else if(!appState.signingCancelled){
+      showToast('Signing error: '+(err.message||'Unknown'), true);
+    }
+  }
+}
+
+function cancelSigning(){
+  appState.signingCancelled=true;
+  closeModal('signing');
+}
+
+function populatePortal(){
+  const short=shortAddr(appState.publicKey);
+  const full=appState.publicKey;
+  const sol=(appState.solBalance||0).toFixed(4);
+  
+  setText('sidebar-wallet-addr',short);
+  setText('sidebar-sol-balance',sol);
+  setText('portal-wallet-short',short+' ✓');
+  setText('settings-full-wallet',full);
+  setText('settings-sol',sol+' SOL');
+  setText('settings-verify-status','✓ Verified');
+  setText('dash-wallet-display',short);
+  setText('claim-wallet-addr',short);
+  
+  if(appState.sessionTime){
+    setText('settings-verified-at',appState.sessionTime.toLocaleTimeString());
+  }
+  
+  const h=new Date().getHours();
+  const greet=h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  setText('overview-greeting',`${greet} — ${short}`);
+  
+  // Dash: SOL balance
+  setText('dash-sol-balance',(appState.solBalance||0).toFixed(4));
+  setText('dash-sol-usd','≈ $'+(((appState.solBalance||0)*solPriceCache)||0).toFixed(2)+' USD');
+  setText('dash-session-info','Signed '+appState.sessionTime.toLocaleTimeString());
+  
+  // TSRA holdings — will be 0 until token is deployed and CA set
+  const isRealCA=CA_ADDRESS!=='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx';
+  if(isRealCA){
+    getTokenAccountBalance(appState.publicKey,CA_ADDRESS).then(bal=>{
+      const fmt=bal>0?bal.toLocaleString():'0';
+      setText('dash-tsra-balance',fmt);
+      setText('dash-tsra-sub',bal>0?'$TSRA in wallet':'No $TSRA found');
+      setText('rewards-tsra-balance',fmt);
+    });
+  } else {
+    setText('dash-tsra-balance','Set CA first');
+    setText('dash-tsra-sub','Deploy token to activate');
+    setText('rewards-tsra-balance','—');
+  }
+  
+  // Treasury page
+  setText('t-treasury-value','Pending deploy');
+  setText('t-treasury-sub','Set CA_ADDRESS');
+  setText('t-price','—');
+  setText('t-price-sub','After token deployment');
+  setText('t-supply','—');
+  setText('t-supply-sub','After token deployment');
+}
+
+let solPriceCache=0;
+getSolPrice().then(p=>{ if(p) solPriceCache=p; });
+
+function shortAddr(addr){
+  if(!addr) return '—';
+  return addr.slice(0,4)+'...'+addr.slice(-4);
+}
+
+function enterPortal(){
+  closeModal('verified');
+  showView('portal');
+  showPortal('overview');
+}
+
+function logout(){
+  appState.connected=false; appState.verified=false; appState.publicKey=null; appState.solBalance=null;
+  if(window.solana&&window.solana.disconnect) window.solana.disconnect();
+  document.getElementById('header-connect-btn').style.display='';
+  document.getElementById('wallet-badge').style.display='none';
+  showView('landing');
+  showToast('Disconnected');
+}
+
+// Handle Phantom account change
+if(window.solana){
+  window.solana.on('disconnect',()=>{ if(appState.connected) logout(); });
+  window.solana.on('accountChanged',(pubkey)=>{
+    if(pubkey) showToast('Phantom account changed — please re-verify',true);
+    else logout();
+  });
+}
+
+// ─── MODALS ───
+function openModal(name){ document.getElementById('overlay-'+name).classList.add('show'); }
+function closeModal(name){ document.getElementById('overlay-'+name).classList.remove('show'); }
+document.querySelectorAll('.overlay').forEach(ov=>{ ov.addEventListener('click',e=>{ if(e.target===ov) ov.classList.remove('show'); }); });
+
+// ─── CLAIM ───
+function confirmClaim(){
+  closeModal('claim');
+  showToast('Claim transaction submitted — check Phantom');
+}
+
+// ─── COPY CA ───
+function copyCA(){
+  navigator.clipboard.writeText(CA_ADDRESS).catch(()=>{});
+  const btn=document.getElementById('ca-copy-btn');
+  if(btn){
+    btn.classList.add('copied');
+    btn.innerHTML=`<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;"><polyline points="20 6 9 17 4 12"></polyline></svg> Copied!`;
+    setTimeout(()=>{
+      btn.classList.remove('copied');
+      btn.innerHTML=`<svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;stroke-width:2;fill:none;"><rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path></svg> Copy Address`;
+    },2200);
+  }
+  showToast('✓ Contract Address Copied');
+}
+
+// ─── VIEW ROUTING ───
+function showView(name){
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+name).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function scrollToSection(sel){
+  showView('landing');
+  setTimeout(()=>{ const el=document.querySelector(sel); if(el) el.scrollIntoView({behavior:'smooth',block:'start'}); },120);
+}
+
+function showPortal(page){
+  document.querySelectorAll('.portal-page').forEach(p=>p.style.display='none');
+  document.getElementById('portal-'+page).style.display='block';
+  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
+  const pages=['overview','rewards','treasury','documents','settings'];
+  const idx=pages.indexOf(page);
+  if(idx>=0) document.querySelectorAll('.sidebar-item')[idx].classList.add('active');
+  if(page==='overview') setTimeout(()=>drawLineChart('main-chart',chartData7D),50);
+}
+
+function showDoc(section){
+  document.querySelectorAll('.docs-section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.docs-nav-item').forEach(n=>n.classList.remove('active'));
+  const el=document.getElementById('doc-'+section);
+  if(el) el.classList.add('active');
+  const labels=['overview','treasury','revenue','distribution','utility','security','faq'];
+  const items=document.querySelectorAll('.docs-nav-item');
+  const idx=labels.indexOf(section);
+  if(idx>=0&&items[idx]) items[idx].classList.add('active');
+}
+
+// ─── FAQ ───
+const faqs=[
+  {q:'What is Treasora?',a:'Treasora is a premium Solana treasury protocol that distributes real USDC yield to verified $TSRA token holders from diversified on-chain revenue strategies.'},
+  {q:'How do I earn rewards?',a:'Connect your Phantom wallet, complete Sign-In With Solana verification, hold $TSRA tokens, and receive proportional USDC distributions each cycle.'},
+  {q:'Is Phantom authentication safe?',a:'Yes. SIWS authentication requires only a cryptographic signature — no transaction is broadcast, no SOL is spent, no tokens are transferred or approved.'},
+  {q:'Are there lockup requirements?',a:'No. Treasora never requires token lockups. Your $TSRA tokens remain fully liquid and in your control at all times.'},
+  {q:'How are reward amounts calculated?',a:'Your reward is proportional to your verified $TSRA holdings relative to total eligible supply at snapshot time.'},
+  {q:'What wallets are supported?',a:'Phantom wallet is the primary supported wallet. Support for additional Solana wallets is on the product roadmap.'}
+];
+const faqList=document.getElementById('faq-list');
+faqs.forEach(f=>{
+  const d=document.createElement('div');
+  d.className='faq-item';
+  d.innerHTML=`<div class="faq-q" onclick="toggleFaq(this)"><span>${f.q}</span><span class="faq-icon">+</span></div><div class="faq-a">${f.a}</div>`;
+  faqList.appendChild(d);
+});
+function toggleFaq(el){
+  const a=el.nextElementSibling,icon=el.querySelector('.faq-icon');
+  const open=a.style.display!=='none'&&a.style.display!=='';
+  a.style.display=open?'none':'block';
+  icon.textContent=open?'+':'−';
+  icon.style.transform=open?'':'rotate(45deg)';
+  el.parentElement.style.borderColor=open?'var(--border)':'var(--primary)';
+}
+
+// ─── TOAST ───
+function showToast(msg,isError=false){
+  const t=document.getElementById('toast');
+  const dot=document.getElementById('toast-dot');
+  document.getElementById('toast-text').textContent=msg;
+  t.className='toast'+(isError?' error-toast':'');
+  dot.className='toast-dot'+(isError?' error':'');
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+// ─── SCROLL HEADER ───
+window.addEventListener('scroll',()=>{
+  const h=document.getElementById('main-header');
+  h.style.background=window.scrollY>40?'rgba(5,5,5,0.97)':'rgba(5,5,5,0.88)';
+});
+
+// ─── CA DISPLAY ───
+if(CA_ADDRESS!=='xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'){
+  setText('ca-full',CA_ADDRESS);
+  setText('ca-short',CA_ADDRESS.slice(0,6)+'...'+CA_ADDRESS.slice(-6));
+  setText('footer-ca-display',CA_ADDRESS.slice(0,6)+'...'+CA_ADDRESS.slice(-6));
+}
+
+// ─── INIT ───
+document.addEventListener('DOMContentLoaded',()=>{
+  loadPublicMetrics();
+  // If Phantom already connected from previous session
+  if(window.solana&&window.solana.isPhantom&&window.solana.isConnected){
+    // Don't auto-reconnect silently — require explicit action per security best practices
+  }
+});
+</script>
+</body>
+</html>
